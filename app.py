@@ -12,6 +12,37 @@ st.set_page_config(
 )
 
 # ──────────────────────────────────────
+# SAMPLE EMAIL DATA
+# ──────────────────────────────────────
+SAMPLE_EMAIL = """Delivered-To: user@gmail.com
+Received: by 2002:a05:6512:3b87:b0:52e:9d4f:3c8b with SMTP id abc123;
+        Tue, 15 Apr 2025 03:42:17 -0700 (PDT)
+Return-Path: <bounce@mail.track-orders247.xyz>
+Received: from mail.track-orders247.xyz (unknown [103.224.182.253])
+        by mx.google.com with ESMTP id xyz789
+        for <user@gmail.com>;
+        Tue, 15 Apr 2025 03:42:15 -0700 (PDT)
+From: "Amazon Security" <account-alert@amaz0n-secure.com>
+Reply-To: <support@track-orders247.xyz>
+Subject: URGENT: Your Amazon Account Has Been Suspended
+Message-ID: <20250415104215.ABC123@track-orders247.xyz>
+Date: Tue, 15 Apr 2025 10:42:15 +0000
+
+Dear Valued Customer,
+
+We have detected unusual activity on your Amazon account and it has been temporarily suspended for your protection.
+
+You have 24 hours to verify your account information before your account is permanently closed and all pending orders are cancelled.
+
+Click here to verify your account immediately:
+https://www.amazon.com.account-verify.tk/login.php?redirect=secure
+
+If you do not verify within 24 hours, your account will be permanently disabled and your payment methods will be removed.
+
+Thank you,
+Amazon Security Team"""
+
+# ──────────────────────────────────────
 # SIDEBAR
 # ──────────────────────────────────────
 with st.sidebar:
@@ -52,53 +83,29 @@ Paste the **complete email** below — including all headers.
 The AI will analyze sender identity, scan for manipulation, inspect links, and generate a forensic report.
 """)
 
-# Initialize session state for email content
-if "email_content" not in st.session_state:
-    st.session_state.email_content = ""
+# ── SAMPLE EMAIL EXPANDER (at top, before text area) ──
+with st.expander("📩 Don't have a phishing email? Use this sample", expanded=False):
+    st.markdown("Click below to auto-fill a real phishing example into the text box above.")
+    if st.button("📋 Load Sample Email", type="secondary", use_container_width=True):
+        st.session_state.email_input = SAMPLE_EMAIL
+        st.rerun()
+
+# ── TEXT AREA ──
+# Initialize session state for the text area
+if "email_input" not in st.session_state:
+    st.session_state.email_input = ""
 
 raw_email = st.text_area(
     "Paste email here (with headers)",
-    value=st.session_state.email_content,
+    value=st.session_state.email_input,
     height=250,
     placeholder="Paste the full email source here...\n\nIn Gmail: Open email → ⋮ → Show original → Copy all\nIn Outlook: File → Properties → Internet headers",
     help="Include full headers for best results. Headers contain SPF, DKIM, DMARC records.",
     key="email_input"
 )
 
-# ── SAMPLE EMAIL SECTION ──
-with st.expander("📩 Don't have a phishing email? Use this sample"):
-    st.markdown("Click below to auto-fill a real phishing example:")
-    sample_email = """Delivered-To: user@gmail.com
-Received: by 2002:a05:6512:3b87:b0:52e:9d4f:3c8b with SMTP id abc123;
-        Tue, 15 Apr 2025 03:42:17 -0700 (PDT)
-Return-Path: <bounce@mail.track-orders247.xyz>
-Received: from mail.track-orders247.xyz (unknown [103.224.182.253])
-        by mx.google.com with ESMTP id xyz789
-        for <user@gmail.com>;
-        Tue, 15 Apr 2025 03:42:15 -0700 (PDT)
-From: "Amazon Security" <account-alert@amaz0n-secure.com>
-Reply-To: <support@track-orders247.xyz>
-Subject: URGENT: Your Amazon Account Has Been Suspended
-Message-ID: <20250415104215.ABC123@track-orders247.xyz>
-Date: Tue, 15 Apr 2025 10:42:15 +0000
-
-Dear Valued Customer,
-
-We have detected unusual activity on your Amazon account and it has been temporarily suspended for your protection.
-
-You have 24 hours to verify your account information before your account is permanently closed and all pending orders are cancelled.
-
-Click here to verify your account immediately:
-https://www.amazon.com.account-verify.tk/login.php?redirect=secure
-
-If you do not verify within 24 hours, your account will be permanently disabled and your payment methods will be removed.
-
-Thank you,
-Amazon Security Team"""
-    
-    if st.button("Use Sample Email", type="secondary"):
-        st.session_state.email_content = sample_email
-        st.rerun()
+# Update session state on every change
+st.session_state.email_input = raw_email
 
 if raw_email.strip():
     # ── AGENT CHAIN EXECUTION ──
