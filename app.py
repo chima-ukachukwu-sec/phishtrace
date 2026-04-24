@@ -52,14 +52,20 @@ Paste the **complete email** below — including all headers.
 The AI will analyze sender identity, scan for manipulation, inspect links, and generate a forensic report.
 """)
 
+# Initialize session state for email content
+if "email_content" not in st.session_state:
+    st.session_state.email_content = ""
+
 raw_email = st.text_area(
     "Paste email here (with headers)",
+    value=st.session_state.email_content,
     height=250,
     placeholder="Paste the full email source here...\n\nIn Gmail: Open email → ⋮ → Show original → Copy all\nIn Outlook: File → Properties → Internet headers",
-    help="Include full headers for best results. Headers contain SPF, DKIM, DMARC records."
+    help="Include full headers for best results. Headers contain SPF, DKIM, DMARC records.",
+    key="email_input"
 )
 
-# ── SAMPLE EMAIL BUTTON ──
+# ── SAMPLE EMAIL SECTION ──
 with st.expander("📩 Don't have a phishing email? Use this sample"):
     st.markdown("Click below to auto-fill a real phishing example:")
     sample_email = """Delivered-To: user@gmail.com
@@ -91,14 +97,10 @@ Thank you,
 Amazon Security Team"""
     
     if st.button("Use Sample Email", type="secondary"):
-        st.session_state.sample_email = sample_email
+        st.session_state.email_content = sample_email
         st.rerun()
 
-# Pre-fill from session state if sample was clicked
-if "sample_email" in st.session_state:
-    raw_email = st.session_state.sample_email
-
-if raw_email:
+if raw_email.strip():
     # ── AGENT CHAIN EXECUTION ──
     if "header_analysis" not in st.session_state:
         st.session_state.header_analysis = None
