@@ -43,6 +43,13 @@ Thank you,
 Amazon Security Team"""
 
 # ──────────────────────────────────────
+# CALLBACK FUNCTION
+# ──────────────────────────────────────
+def load_sample_email():
+    """Callback that sets the session state variable the text_area reads from."""
+    st.session_state.user_email = SAMPLE_EMAIL
+
+# ──────────────────────────────────────
 # SIDEBAR
 # ──────────────────────────────────────
 with st.sidebar:
@@ -83,29 +90,29 @@ Paste the **complete email** below — including all headers.
 The AI will analyze sender identity, scan for manipulation, inspect links, and generate a forensic report.
 """)
 
-# ── SAMPLE EMAIL EXPANDER (at top, before text area) ──
+# ── INITIALIZE SESSION STATE ──
+if "user_email" not in st.session_state:
+    st.session_state.user_email = ""
+
+# ── SAMPLE EMAIL EXPANDER ──
 with st.expander("📩 Don't have a phishing email? Use this sample", expanded=False):
-    st.markdown("Click below to auto-fill a real phishing example into the text box above.")
-    if st.button("📋 Load Sample Email", type="secondary", use_container_width=True):
-        st.session_state.email_input = SAMPLE_EMAIL
-        st.rerun()
+    st.markdown("Click below to auto-fill a real phishing email example.")
+    st.button(
+        "📋 Load Sample Email",
+        on_click=load_sample_email,
+        type="secondary",
+        use_container_width=True
+    )
 
 # ── TEXT AREA ──
-# Initialize session state for the text area
-if "email_input" not in st.session_state:
-    st.session_state.email_input = ""
-
 raw_email = st.text_area(
     "Paste email here (with headers)",
-    value=st.session_state.email_input,
+    value=st.session_state.user_email,
     height=250,
     placeholder="Paste the full email source here...\n\nIn Gmail: Open email → ⋮ → Show original → Copy all\nIn Outlook: File → Properties → Internet headers",
     help="Include full headers for best results. Headers contain SPF, DKIM, DMARC records.",
-    key="email_input"
+    key="user_email"
 )
-
-# Update session state on every change
-st.session_state.email_input = raw_email
 
 if raw_email.strip():
     # ── AGENT CHAIN EXECUTION ──
